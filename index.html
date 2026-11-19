@@ -1,0 +1,2480 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>鏡片系列、產地與組合總價試算（四步驟）</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #0f172a;
+      --cn-accent: #2563eb;
+      --cn-soft: #eff6ff;
+      --ph-accent: #0d9488;
+      --ph-soft: #f0fdfa;
+      --jp-accent: #b45309;
+      --jp-soft: #fffbeb;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    input.no-spinner::-webkit-outer-spin-button,
+    input.no-spinner::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input.no-spinner[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 16px 64px;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page-wrapper {
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    /* 四步驟進度條 */
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .stepper {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .stepper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 14px;
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .step-tab:hover {
+      border-color: #94a3b8;
+    }
+
+    .step-tab.active {
+      border-color: var(--primary);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .step-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-tab.active .step-badge {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .step-text strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .step-text span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .step-panel {
+      display: none;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    /* 第 1 步設定卡片 */
+    .setup-card {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .setup-block h2 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .setup-block .hint {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .choice-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .choice-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .choice-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .choice-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .choice-btn.origin-cn.active {
+      background: var(--cn-accent);
+      border-color: var(--cn-accent);
+    }
+
+    .choice-btn.origin-ph.active {
+      background: var(--ph-accent);
+      border-color: var(--ph-accent);
+    }
+
+    .choice-btn.origin-jp.active {
+      background: var(--jp-accent);
+      border-color: var(--jp-accent);
+    }
+
+    .frame-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .frame-box label {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .frame-box input {
+      width: 140px;
+      padding: 8px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: right;
+      background: #ffffff;
+    }
+
+    /* 檔期與活動折扣區 */
+    .discount-panel {
+      display: flex;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 12px;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 14px;
+    }
+
+    .discount-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .discount-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .discount-item input,
+    .discount-item select {
+      padding: 5px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #ffffff;
+    }
+
+    .discount-item input[type="number"] {
+      width: 82px;
+      text-align: right;
+    }
+
+    .add-promo-box {
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #94a3b8;
+      background: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .small-btn:hover:not(:disabled) {
+      background: #f1f5f9;
+    }
+
+    .small-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .danger-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .danger-btn:hover:not(:disabled) {
+      background: #fee2e2;
+    }
+
+    .danger-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* 第 2 步工具列與推薦疊加區 */
+    .step2-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .toolbar-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .recommend-bar {
+      padding-top: 14px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .recommend-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+      margin-right: 4px;
+    }
+
+    /* 放大且各自上色的推薦組合按鈕 */
+    .rec-btn {
+      padding: 13px 20px;
+      min-height: 48px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .rec-btn.rec-blue {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #93c5fd;
+    }
+    .rec-btn.rec-blue:hover {
+      background: #dbeafe;
+    }
+    .rec-btn.rec-blue.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .rec-btn.rec-photochromic {
+      background: #f0fdfa;
+      color: #0f766e;
+      border-color: #5eead4;
+    }
+    .rec-btn.rec-photochromic:hover {
+      background: #ccfbf1;
+    }
+    .rec-btn.rec-photochromic.active {
+      background: #0d9488;
+      color: #ffffff;
+      border-color: #0f766e;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    }
+
+    .rec-btn.rec-clarity {
+      background: #eef2ff;
+      color: #4338ca;
+      border-color: #a5b4fc;
+    }
+    .rec-btn.rec-clarity:hover {
+      background: #e0e7ff;
+    }
+    .rec-btn.rec-clarity.active {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4338ca;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .rec-btn.rec-aspheric {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fcd34d;
+    }
+    .rec-btn.rec-aspheric:hover {
+      background: #fef3c7;
+    }
+    .rec-btn.rec-aspheric.active {
+      background: #d97706;
+      color: #ffffff;
+      border-color: #b45309;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+    }
+
+    .rec-btn.rec-durable {
+      background: #fff1f2;
+      color: #be123c;
+      border-color: #fda4af;
+    }
+    .rec-btn.rec-durable:hover {
+      background: #ffe4e6;
+    }
+    .rec-btn.rec-durable.active {
+      background: #e11d48;
+      color: #ffffff;
+      border-color: #be123c;
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .cards-grid.two-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .cards-grid.single-focus {
+      grid-template-columns: minmax(0, 560px);
+      justify-content: center;
+    }
+
+    @media (max-width: 960px) {
+      .cards-grid:not(.single-focus) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .cards-grid:not(.single-focus):not(.two-cols) {
+        grid-template-columns: 1fr;
+      }
+      .cards-grid.two-cols {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .brand-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      padding: 18px 20px;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-cn .card-header {
+      background: linear-gradient(135deg, #1d4ed8, var(--cn-accent));
+    }
+
+    .card-ph .card-header {
+      background: linear-gradient(135deg, #0f766e, var(--ph-accent));
+    }
+
+    .card-jp .card-header {
+      background: linear-gradient(135deg, #92400e, var(--jp-accent));
+    }
+
+    .brand-title h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-title span {
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .header-right-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hide-price-btn {
+      padding: 5px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hide-price-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .total-box {
+      text-align: right;
+      background: rgba(255, 255, 255, 0.16);
+      padding: 6px 12px;
+      border-radius: 10px;
+      min-width: 118px;
+    }
+
+    .total-label {
+      display: block;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .total-amount {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .options-list {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .group-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .option-btn {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+
+    .option-btn:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .remove-item-btn {
+      width: 34px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .remove-item-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    .option-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .check-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .option-price {
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .price-hidden .option-price,
+    .price-hidden .total-box,
+    .price-hidden .price-detail-text {
+      display: none;
+    }
+
+    .card-cn .option-btn.active {
+      border-color: var(--cn-accent);
+      background: var(--cn-soft);
+    }
+    .card-cn .option-btn.active .check-indicator {
+      background: var(--cn-accent);
+      border-color: var(--cn-accent);
+    }
+    .card-cn .option-btn.active .option-price {
+      color: var(--cn-accent);
+    }
+
+    .card-ph .option-btn.active {
+      border-color: var(--ph-accent);
+      background: var(--ph-soft);
+    }
+    .card-ph .option-btn.active .check-indicator {
+      background: var(--ph-accent);
+      border-color: var(--ph-accent);
+    }
+    .card-ph .option-btn.active .option-price {
+      color: var(--ph-accent);
+    }
+
+    .card-jp .option-btn.active {
+      border-color: var(--jp-accent);
+      background: var(--jp-soft);
+    }
+    .card-jp .option-btn.active .check-indicator {
+      background: var(--jp-accent);
+      border-color: var(--jp-accent);
+    }
+    .card-jp .option-btn.active .option-price {
+      color: var(--jp-accent);
+    }
+
+    .custom-item-adder {
+      margin-top: 6px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .custom-item-inputs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .custom-item-name {
+      flex: 1;
+      min-width: 96px;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #ffffff;
+    }
+
+    .custom-item-price {
+      width: 82px;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: right;
+      background: #ffffff;
+    }
+
+    .custom-item-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .package-price-box {
+      margin: 0 16px 14px;
+      padding: 10px 12px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .package-price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .package-inputs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .package-price-row input {
+      width: 104px;
+      padding: 5px 8px;
+      border: 1px solid #7dd3fc;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0369a1;
+      text-align: right;
+      background: #ffffff;
+    }
+
+    .promo-error-alert {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fef2f2;
+      border: 1.5px solid #ef4444;
+      color: #b91c1c;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .selected-summary {
+      padding: 0 16px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .selected-summary strong {
+      color: var(--text);
+    }
+
+    .card-actions {
+      padding: 0 16px 16px;
+    }
+
+    .add-compare-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 9px;
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .add-compare-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* 第 3 步：圖示化含折扣後最終總價卡片 */
+    .final-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .final-grid.two-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .final-grid.single-focus {
+      grid-template-columns: minmax(0, 560px);
+      justify-content: center;
+    }
+
+    @media (max-width: 960px) {
+      .final-grid:not(.single-focus) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .final-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visual-final-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .visual-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .icon-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .card-cn .icon-badge { background: var(--cn-accent); }
+    .card-ph .icon-badge { background: var(--ph-accent); }
+    .card-jp .icon-badge { background: var(--jp-accent); }
+
+    .visual-title h3 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .visual-title span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .final-price-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .final-price-label {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .final-price-num {
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .card-cn .final-price-num { color: var(--cn-accent); }
+    .card-ph .final-price-num { color: var(--ph-accent); }
+    .card-jp .final-price-num { color: var(--jp-accent); }
+
+    .strike-sub {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    .lens-combo-section {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .lens-combo-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .lens-combo-list {
+      margin: 0;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .lens-combo-empty {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .discount-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-wrap: wrap;
+    }
+
+    .saved-red {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .no-discount-note {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* 第 4 步：仿第 3 步卡片設計 */
+    .chart-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .chart-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .compare-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    @media (max-width: 960px) {
+      .compare-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .compare-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .compare-visual-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .compare-visual-card.card-cn { border-color: #93c5fd; }
+    .compare-visual-card.card-ph { border-color: #5eead4; }
+    .compare-visual-card.card-jp { border-color: #fcd34d; }
+
+    .delete-item-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .delete-item-btn:hover {
+      background: #fee2e2;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 16px;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+    }
+
+    /* 底部步驟切換列 */
+    .step-footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: var(--text);
+      border-color: #cbd5e1;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #f1f5f9;
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #334155;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .note {
+      margin-top: 22px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="page-header">
+      <h1>鏡片系列、產地與組合總價試算</h1>
+      <p>四步驟完成設定、挑組合、看折扣後最終總價與組合比較</p>
+    </header>
+
+    <!-- 四步驟進度條 -->
+    <nav class="stepper" aria-label="試算步驟">
+      <button type="button" class="step-tab active" data-step="1">
+        <span class="step-badge">1</span>
+        <span class="step-text">
+          <strong>系列、產地與檔期</strong>
+          <span>單焦/多焦、產地、鏡框與檔期</span>
+        </span>
+      </button>
+      <button type="button" class="step-tab" data-step="2">
+        <span class="step-badge">2</span>
+        <span class="step-text">
+          <strong>挑選鏡片組合</strong>
+          <span>目前總價為鏡片＋鏡框（無折扣）</span>
+        </span>
+      </button>
+      <button type="button" class="step-tab" data-step="3">
+        <span class="step-badge">3</span>
+        <span class="step-text">
+          <strong>折扣後最終總價</strong>
+          <span>套用套餐折扣與檔期活動</span>
+        </span>
+      </button>
+      <button type="button" class="step-tab" data-step="4">
+        <span class="step-badge">4</span>
+        <span class="step-text">
+          <strong>組合功能與價錢</strong>
+          <span>已存組合卡片、折扣與最終價</span>
+        </span>
+      </button>
+    </nav>
+
+    <!-- 第 1 步 -->
+    <section class="step-panel active" id="stepPanel1">
+      <div class="setup-card">
+        <div class="setup-block">
+          <h2>1. 選擇鏡片系列</h2>
+          <p class="hint">多焦專屬品項最多只能選 1 項；若未勾選任何多焦專屬品項，系統會自動視為單焦。</p>
+          <div class="choice-row" id="lensTypeGroup">
+            <button type="button" class="choice-btn active" data-lens-type="single">單焦系列</button>
+            <button type="button" class="choice-btn" data-lens-type="progressive">多焦系列</button>
+          </div>
+        </div>
+
+        <div class="setup-block">
+          <h2>2. 選擇比價產地（可選 1 個、任選 2 個或全看）</h2>
+          <p class="hint">點選「三個產地全看」可看全部；也可點選任兩個產地按鍵進行兩兩對比。</p>
+          <div class="choice-row" id="originFocusGroup">
+            <button type="button" class="choice-btn active" id="originAllBtn" data-origin="all">三個產地全看</button>
+            <button type="button" class="choice-btn origin-cn" data-origin="cn">中國製</button>
+            <button type="button" class="choice-btn origin-ph" data-origin="ph">菲律賓製</button>
+            <button type="button" class="choice-btn origin-jp" data-origin="jp">日本製</button>
+          </div>
+        </div>
+
+        <div class="setup-block">
+          <h2>3. 輸入鏡框價錢</h2>
+          <p class="hint">鏡片加上鏡框價錢即為第 2 步有顏色標題列的「目前總價」（不含任何折扣）。</p>
+          <div class="frame-box">
+            <label for="framePriceInput">鏡框價錢</label>
+            <input
+              type="number"
+              class="no-spinner"
+              inputmode="numeric"
+              id="framePriceInput"
+              min="0"
+              placeholder="0"
+            />
+            <span>元</span>
+          </div>
+        </div>
+
+        <div class="setup-block">
+          <h2>4. 套用檔期活動（支援兩個滿額門檻）</h2>
+          <p class="hint">若同時設定兩個滿額門檻（例如滿 6,500 折 660、滿 10,000 折 1,000），系統會自動套用符合且折抵較高的門檻；若設有套餐價折扣則無法整筆打折數。</p>
+          <div class="discount-panel" id="discountPanel">
+            <div class="discount-row">
+              <div class="discount-item">
+                <label for="promoPresetSelect"><strong>檔期活動：</strong></label>
+                <select id="promoPresetSelect"></select>
+                <button type="button" class="danger-btn" id="deletePromoBtn" disabled>🗑 刪除自訂檔期</button>
+              </div>
+            </div>
+
+            <div class="discount-row">
+              <div class="discount-item">
+                <span>滿</span>
+                <input type="number" class="no-spinner" inputmode="numeric" id="threshold1Input" min="0" placeholder="6500" />
+                <span>折</span>
+                <input type="number" class="no-spinner" inputmode="numeric" id="off1Input" min="0" placeholder="660" />
+              </div>
+              <span>或</span>
+              <div class="discount-item">
+                <span>滿</span>
+                <input type="number" class="no-spinner" inputmode="numeric" id="threshold2Input" min="0" placeholder="10000" />
+                <span>折</span>
+                <input type="number" class="no-spinner" inputmode="numeric" id="off2Input" min="0" placeholder="1000" />
+              </div>
+            </div>
+
+            <div class="discount-row">
+              <div class="discount-item">
+                <input type="text" id="promoNameInput" placeholder="活動名稱" style="width: 110px;" />
+                <span>打</span>
+                <input type="number" class="no-spinner" inputmode="decimal" id="rateInput" min="0" max="100" placeholder="85" />
+                <span>折</span>
+              </div>
+            </div>
+
+            <div class="add-promo-box">
+              <strong>新增檔期：</strong>
+              <input type="text" id="newPromoName" placeholder="檔期名稱" style="width: 110px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+              <span>滿</span>
+              <input type="number" class="no-spinner" inputmode="numeric" id="newThreshold1" min="0" placeholder="6500" style="width: 68px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right;" />
+              <span>折</span>
+              <input type="number" class="no-spinner" inputmode="numeric" id="newOff1" min="0" placeholder="660" style="width: 64px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right;" />
+              <span>或滿</span>
+              <input type="number" class="no-spinner" inputmode="numeric" id="newThreshold2" min="0" placeholder="10000" style="width: 74px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right;" />
+              <span>折</span>
+              <input type="number" class="no-spinner" inputmode="numeric" id="newOff2" min="0" placeholder="1000" style="width: 68px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right;" />
+              <span>或打</span>
+              <input type="number" class="no-spinner" inputmode="decimal" id="newRate" min="0" max="100" placeholder="85" style="width: 62px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right;" />
+              <span>折</span>
+              <button type="button" class="small-btn" id="addPromoBtn">＋ 儲存檔期</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第 2 步 -->
+    <section class="step-panel" id="stepPanel2">
+      <div class="step2-toolbar">
+        <div class="toolbar-top">
+          <div class="toolbar-left">
+            <div>預設系列：<strong id="step2LensTypeLabel">單焦系列</strong></div>
+            <div>比價產地：<strong id="step2OriginLabel">三個產地全看</strong></div>
+            <div>鏡框價錢：<strong id="step2FrameDisplay">0 元</strong></div>
+          </div>
+          <div class="toolbar-right">
+            <button type="button" class="small-btn" id="restoreDeletedBtn" disabled>
+              ↺ 還原已刪除品項（<span id="deletedCountBadge">0</span>）
+            </button>
+            <button type="button" class="small-btn" id="hideAllPricesBtn">全部隱藏價錢</button>
+            <button type="button" class="small-btn" id="showAllPricesBtn">全部顯示價錢</button>
+            <button type="button" class="small-btn" id="goCompareStepBtn">查看組合比較（<span id="compareCountBadge">0</span> 組）</button>
+            <button type="button" class="reset-btn" id="resetBtn">清除所有選取與金額</button>
+          </div>
+        </div>
+
+        <div class="recommend-bar" id="recommendBar">
+          <span class="recommend-label">推薦組合：</span>
+          <button type="button" class="rec-btn rec-blue" data-rec="blue">1. 護眼防護</button>
+          <button type="button" class="rec-btn rec-photochromic" data-rec="photochromic">2. 智能變色</button>
+          <button type="button" class="rec-btn rec-clarity" data-rec="clarity">3. 清晰升級</button>
+          <button type="button" class="rec-btn rec-aspheric" data-rec="aspheric">4. 像差設計薄</button>
+          <button type="button" class="rec-btn rec-durable" data-rec="durable">5. 耐用升級</button>
+        </div>
+      </div>
+      <main class="cards-grid" id="cardsGrid"></main>
+    </section>
+
+    <!-- 第 3 步：圖示化含折扣後最終總價卡片 -->
+    <section class="step-panel" id="stepPanel3">
+      <div class="final-grid" id="finalCardsGrid"></div>
+    </section>
+
+    <!-- 第 4 步：仿第 3 步卡片設計 -->
+    <section class="step-panel" id="stepPanel4">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h2>已加入比較組合（功能列、折扣優惠與最終價錢）</h2>
+            <p class="hint" style="margin: 4px 0 0;">依品牌顏色區分，條列顯示各組功能列、套餐折扣、檔期優惠、共省金額與最終價錢。</p>
+          </div>
+          <button type="button" class="reset-btn" id="clearCompareBtn">清空比較組合</button>
+        </div>
+
+        <div id="compareChartContainer"></div>
+      </div>
+    </section>
+
+    <div class="step-footer">
+      <button type="button" class="btn btn-secondary" id="prevStepBtn" disabled>← 上一步</button>
+      <button type="button" class="btn btn-primary" id="nextStepBtn">下一步 →</button>
+    </div>
+
+    <p class="note">※ 第 2 步可新增/刪除/還原品項；第 3 步條列顯示鏡片組合；第 4 步以卡片比較並將「共省」金額以紅色顯示。</p>
+  </div>
+
+  <script>
+    const STORAGE_PROMOS_KEY = "lens_custom_promos_v2";
+
+    const DEFAULT_PROMOS = [
+      {
+        id: "none",
+        label: "無檔期折扣",
+        name: "",
+        threshold1: "",
+        off1: "",
+        threshold2: "",
+        off2: "",
+        rate: ""
+      },
+      {
+        id: "tier_dual",
+        label: "雙門檻檔期（滿 6,500 折 660 / 滿 10,000 折 1,000）",
+        name: "雙門檻檔期",
+        threshold1: 6500,
+        off1: 660,
+        threshold2: 10000,
+        off2: 1000,
+        rate: ""
+      },
+      {
+        id: "member85",
+        label: "會員日檔期（打 85 折）",
+        name: "會員日檔期",
+        threshold1: "",
+        off1: "",
+        threshold2: "",
+        off2: "",
+        rate: 85
+      }
+    ];
+
+    function loadPromos() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_PROMOS_KEY) || "[]");
+        if (Array.isArray(saved) && saved.length > 0) {
+          return [...DEFAULT_PROMOS, ...saved];
+        }
+      } catch (e) {}
+      return [...DEFAULT_PROMOS];
+    }
+
+    function saveCustomPromos(allPromos) {
+      const customOnly = allPromos.filter((p) => !DEFAULT_PROMOS.some((d) => d.id === p.id));
+      try {
+        localStorage.setItem(STORAGE_PROMOS_KEY, JSON.stringify(customOnly));
+      } catch (e) {}
+    }
+
+    let promosList = loadPromos();
+
+    const brandsData = [
+      {
+        id: "cn",
+        name: "中國製",
+        icon: "🇨🇳",
+        cardClass: "card-cn",
+        baseItems: [
+          { name: "藍光", price: 1000 },
+          { name: "全視線", price: 5000 },
+          { name: "耐刮", price: 2000 },
+          { name: "高清", price: 1000 },
+          { name: "蜂巢", price: 2000 }
+        ],
+        progressiveItems: [
+          { name: "紓壓", price: 3000 },
+          { name: "ID多焦", price: 2000 },
+          { name: "STEADY多焦", price: 5000 }
+        ]
+      },
+      {
+        id: "ph",
+        name: "菲律賓製",
+        icon: "🇵🇭",
+        cardClass: "card-ph",
+        baseItems: [
+          { name: "藍光", price: 1000 },
+          { name: "調光", price: 3000 },
+          { name: "耐刮", price: 2000 },
+          { name: "高清", price: 1000 },
+          { name: "雙面非球面", price: 2000 }
+        ],
+        progressiveItems: [
+          { name: "REGULAR多焦", price: 2000 },
+          { name: "STANDARD多焦", price: 3000 },
+          { name: "GOLD多焦", price: 5000 },
+          { name: "GOLD+多焦", price: 10000 }
+        ]
+      },
+      {
+        id: "jp",
+        name: "日本製",
+        icon: "🇯🇵",
+        cardClass: "card-jp",
+        baseItems: [
+          { name: "藍光", price: 3000 },
+          { name: "調光", price: 5000 },
+          { name: "耐刮", price: 4000 },
+          { name: "雙面非球面", price: 4000 },
+          { name: "蜂巢", price: 4000 }
+        ],
+        progressiveItems: [
+          { name: "紓壓", price: 5000 },
+          { name: "EASE多焦", price: 4000 },
+          { name: "STYLE多焦", price: 7000 }
+        ]
+      }
+    ];
+
+    const customItemsMap = {
+      cn: { base: [], progressive: [] },
+      ph: { base: [], progressive: [] },
+      jp: { base: [], progressive: [] }
+    };
+
+    let lensType = "single";
+    let selectedOrigins = [];
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const deletedItemsMap = {
+      cn: new Set(),
+      ph: new Set(),
+      jp: new Set()
+    };
+
+    const selectedNamesMap = {
+      cn: new Set(),
+      ph: new Set(),
+      jp: new Set()
+    };
+
+    const packageDiscountMap = {
+      cn: 0,
+      ph: 0,
+      jp: 0
+    };
+
+    const hiddenPriceMap = {
+      cn: false,
+      ph: false,
+      jp: false
+    };
+
+    const activeRecSet = new Set();
+
+    const comparedCombos = [];
+
+    const stepTabs = document.querySelectorAll(".step-tab");
+    const stepPanels = {
+      1: document.getElementById("stepPanel1"),
+      2: document.getElementById("stepPanel2"),
+      3: document.getElementById("stepPanel3"),
+      4: document.getElementById("stepPanel4")
+    };
+    const prevStepBtn = document.getElementById("prevStepBtn");
+    const nextStepBtn = document.getElementById("nextStepBtn");
+
+    const cardsGrid = document.getElementById("cardsGrid");
+    const finalCardsGrid = document.getElementById("finalCardsGrid");
+    const compareChartContainer = document.getElementById("compareChartContainer");
+    const compareCountBadge = document.getElementById("compareCountBadge");
+    const deletedCountBadge = document.getElementById("deletedCountBadge");
+    const restoreDeletedBtn = document.getElementById("restoreDeletedBtn");
+    const goCompareStepBtn = document.getElementById("goCompareStepBtn");
+    const clearCompareBtn = document.getElementById("clearCompareBtn");
+    const hideAllPricesBtn = document.getElementById("hideAllPricesBtn");
+    const showAllPricesBtn = document.getElementById("showAllPricesBtn");
+
+    const step2LensTypeLabel = document.getElementById("step2LensTypeLabel");
+    const step2OriginLabel = document.getElementById("step2OriginLabel");
+    const step2FrameDisplay = document.getElementById("step2FrameDisplay");
+
+    const framePriceInput = document.getElementById("framePriceInput");
+    const promoPresetSelect = document.getElementById("promoPresetSelect");
+    const deletePromoBtn = document.getElementById("deletePromoBtn");
+    const threshold1Input = document.getElementById("threshold1Input");
+    const off1Input = document.getElementById("off1Input");
+    const threshold2Input = document.getElementById("threshold2Input");
+    const off2Input = document.getElementById("off2Input");
+    const promoNameInput = document.getElementById("promoNameInput");
+    const rateInput = document.getElementById("rateInput");
+
+    const newPromoName = document.getElementById("newPromoName");
+    const newThreshold1 = document.getElementById("newThreshold1");
+    const newOff1 = document.getElementById("newOff1");
+    const newThreshold2 = document.getElementById("newThreshold2");
+    const newOff2 = document.getElementById("newOff2");
+    const newRate = document.getElementById("newRate");
+    const addPromoBtn = document.getElementById("addPromoBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const originAllBtn = document.getElementById("originAllBtn");
+    const originSingleBtns = document.querySelectorAll("#originFocusGroup .choice-btn[data-origin]:not([data-origin='all'])");
+
+    function getTotalDeletedCount() {
+      return Object.values(deletedItemsMap).reduce((sum, set) => sum + set.size, 0);
+    }
+
+    function syncRestoreDeletedBtn() {
+      const count = getTotalDeletedCount();
+      deletedCountBadge.textContent = count;
+      restoreDeletedBtn.disabled = count === 0;
+    }
+
+    function isCustomPromoId(id) {
+      return typeof id === "string" && id.startsWith("custom_");
+    }
+
+    function syncDeletePromoBtn() {
+      deletePromoBtn.disabled = !isCustomPromoId(promoPresetSelect.value);
+    }
+
+    function renderPromoOptions(selectedId = "none") {
+      promoPresetSelect.innerHTML = "";
+      promosList.forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.label;
+        promoPresetSelect.appendChild(opt);
+      });
+      const customOpt = document.createElement("option");
+      customOpt.value = "custom";
+      customOpt.textContent = "自訂活動條件";
+      promoPresetSelect.appendChild(customOpt);
+      promoPresetSelect.value = selectedId;
+      syncDeletePromoBtn();
+    }
+
+    function getBrandBaseList(brand) {
+      const customBase = customItemsMap[brand.id]?.base || [];
+      return [...brand.baseItems, ...customBase].filter((i) => !deletedItemsMap[brand.id].has(i.name));
+    }
+
+    function getBrandProgressiveList(brand) {
+      const customProg = customItemsMap[brand.id]?.progressive || [];
+      return [...brand.progressiveItems, ...customProg].filter((i) => !deletedItemsMap[brand.id].has(i.name));
+    }
+
+    function getBrandItems(brand) {
+      const base = getBrandBaseList(brand);
+      return lensType === "progressive" ? [...base, ...getBrandProgressiveList(brand)] : base;
+    }
+
+    function getVisibleBrands() {
+      if (selectedOrigins.length === 0) return brandsData;
+      return brandsData.filter((b) => selectedOrigins.includes(b.id));
+    }
+
+    function getOriginLabel() {
+      if (selectedOrigins.length === 0) return "三個產地全看";
+      const nameMap = { cn: "中國製", ph: "菲律賓製", jp: "日本製" };
+      return selectedOrigins.map((id) => nameMap[id]).join(" ＋ ");
+    }
+
+    function syncOriginButtonsUI() {
+      originAllBtn.classList.toggle("active", selectedOrigins.length === 0);
+      originSingleBtns.forEach((btn) => {
+        btn.classList.toggle("active", selectedOrigins.includes(btn.dataset.origin));
+      });
+    }
+
+    function getFramePrice() {
+      const val = Number(framePriceInput.value);
+      return Number.isFinite(val) && val > 0 ? val : 0;
+    }
+
+    function formatMoney(num) {
+      return `${Math.round(num).toLocaleString("zh-Hant")} 元`;
+    }
+
+    function applyPromoWithPackageRule(noDiscountTotal, packageDiscount) {
+      const hasPackageDiscount = packageDiscount > 0;
+      const afterPackage = Math.max(0, noDiscountTotal - packageDiscount);
+      let current = afterPackage;
+      const rulesApplied = [];
+
+      const rawRate = Number(rateInput.value);
+      const hasRateDiscount = Number.isFinite(rawRate) && rawRate > 0 && rawRate < 100;
+      const rateConflictError = hasPackageDiscount && hasRateDiscount;
+
+      const tiers = [];
+      const t1 = Number(threshold1Input.value);
+      const o1 = Number(off1Input.value);
+      if (Number.isFinite(t1) && t1 > 0 && Number.isFinite(o1) && o1 > 0 && current >= t1) {
+        tiers.push({ threshold: t1, off: o1 });
+      }
+      const t2 = Number(threshold2Input.value);
+      const o2 = Number(off2Input.value);
+      if (Number.isFinite(t2) && t2 > 0 && Number.isFinite(o2) && o2 > 0 && current >= t2) {
+        tiers.push({ threshold: t2, off: o2 });
+      }
+
+      if (tiers.length > 0) {
+        tiers.sort((a, b) => b.off - a.off);
+        const bestTier = tiers[0];
+        const beforeTier = current;
+        current = Math.max(0, current - bestTier.off);
+        const actualOff = beforeTier - current;
+        rulesApplied.push(`滿${bestTier.threshold.toLocaleString("zh-Hant")}折${actualOff.toLocaleString("zh-Hant")}`);
+      }
+
+      if (hasRateDiscount && !rateConflictError) {
+        const multiplier = rawRate < 10 ? rawRate / 10 : rawRate / 100;
+        const promoLabel = promoNameInput.value.trim() || "檔期活動";
+        current = Math.round(current * multiplier);
+        rulesApplied.push(`${promoLabel}打${rawRate}折`);
+      }
+
+      const promoSaved = Math.max(0, afterPackage - current);
+      const totalSaved = Math.max(0, noDiscountTotal - current);
+
+      return {
+        noDiscountTotal,
+        packageDiscount,
+        afterPackage,
+        finalTotal: current,
+        promoSaved,
+        totalSaved,
+        rateConflictError,
+        promoSummaryLabel: rulesApplied.length > 0 ? rulesApplied.join("、") : "無檔期折扣"
+      };
+    }
+
+    function getBrandCalculation(brand) {
+      const framePrice = getFramePrice();
+      const items = getBrandItems(brand);
+      const selectedSet = selectedNamesMap[brand.id];
+
+      const progAll = [...brand.progressiveItems, ...(customItemsMap[brand.id]?.progressive || [])];
+      const progressiveNames = new Set(progAll.map((p) => p.name));
+      let hasProgressiveSelected = false;
+
+      let lensTotal = 0;
+      const chosenItems = [];
+      items.forEach((item) => {
+        if (selectedSet.has(item.name)) {
+          lensTotal += item.price;
+          chosenItems.push(item);
+          if (progressiveNames.has(item.name)) {
+            hasProgressiveSelected = true;
+          }
+        }
+      });
+
+      const hasAnySelection = chosenItems.length > 0;
+      const effectiveSeriesLabel = hasProgressiveSelected ? "多焦系列" : "單焦系列";
+
+      const noDiscountTotal = Math.max(0, lensTotal + framePrice);
+      const rawPkg = Number(packageDiscountMap[brand.id] || 0);
+      const packageDiscount = Number.isFinite(rawPkg) && rawPkg > 0 ? rawPkg : 0;
+
+      const calc = applyPromoWithPackageRule(noDiscountTotal, packageDiscount);
+
+      const itemsText = hasAnySelection
+        ? chosenItems.map((i) => `${i.name}（${i.price.toLocaleString("zh-Hant")}元）`).join(" + ")
+        : "尚未勾選鏡片功能";
+
+      return {
+        brand,
+        hasAnySelection,
+        lensTotal,
+        framePrice,
+        packageDiscount,
+        effectiveSeriesLabel,
+        chosenItems,
+        itemsText,
+        noDiscountTotal,
+        calc
+      };
+    }
+
+    function buildLensComboListHtml(chosenItems) {
+      if (!chosenItems || chosenItems.length === 0) {
+        return `<div class="lens-combo-empty">尚未勾選鏡片功能</div>`;
+      }
+      const lis = chosenItems
+        .map((item) => `<li>${item.name}（+${item.price.toLocaleString("zh-Hant")} 元）</li>`)
+        .join("");
+      return `<ul class="lens-combo-list">${lis}</ul>`;
+    }
+
+    function buildDiscountBadgeHtml(hasAnySelection, packageDiscount, calc, noDiscountTotal) {
+      if (!hasAnySelection) {
+        return `<div class="no-discount-note">💡 尚未勾選鏡片功能，勾選後才會顯示最終總價。</div>`;
+      }
+      if (calc.totalSaved > 0) {
+        const pkgPart = packageDiscount > 0 ? `套餐折 ${formatMoney(packageDiscount)}` : `套餐折 0 元`;
+        return `<div class="discount-pill">🏷️ ${pkgPart}｜${calc.promoSummaryLabel}（<span class="saved-red">共省 ${formatMoney(calc.totalSaved)}</span>）</div>`;
+      }
+      return `<div class="no-discount-note">🏷️ 目前無折扣（鏡片＋鏡框：${formatMoney(noDiscountTotal)}）</div>`;
+    }
+
+    function applyActiveRecommendations() {
+      const visibleBrands = getVisibleBrands();
+
+      visibleBrands.forEach((brand) => {
+        const availableNames = new Set(getBrandItems(brand).map((i) => i.name));
+        const set = selectedNamesMap[brand.id];
+
+        ["藍光", "調光", "全視線", "高清", "蜂巢", "雙面非球面", "耐刮"].forEach((n) => set.delete(n));
+
+        if (activeRecSet.has("blue") && availableNames.has("藍光")) {
+          set.add("藍光");
+        }
+        if (activeRecSet.has("photochromic")) {
+          if (availableNames.has("全視線")) set.add("全視線");
+          if (availableNames.has("調光")) set.add("調光");
+        }
+        if (activeRecSet.has("clarity")) {
+          if (brand.id === "cn") {
+            if (availableNames.has("蜂巢")) {
+              set.add("蜂巢");
+            } else if (availableNames.has("高清")) {
+              set.add("高清");
+            }
+          } else {
+            if (availableNames.has("高清")) {
+              set.add("高清");
+            } else if (availableNames.has("蜂巢")) {
+              set.add("蜂巢");
+            }
+          }
+        }
+        if (activeRecSet.has("aspheric") && availableNames.has("雙面非球面")) {
+          set.add("雙面非球面");
+        }
+        if (activeRecSet.has("durable") && availableNames.has("耐刮")) {
+          set.add("耐刮");
+        }
+      });
+
+      document.querySelectorAll(".rec-btn").forEach((btn) => {
+        btn.classList.toggle("active", activeRecSet.has(btn.dataset.rec));
+      });
+    }
+
+    function goToStep(step) {
+      currentStep = Math.min(Math.max(step, 1), totalSteps);
+
+      stepTabs.forEach((tab) => {
+        const tabStep = Number(tab.dataset.step);
+        tab.classList.toggle("active", tabStep === currentStep);
+      });
+
+      Object.keys(stepPanels).forEach((key) => {
+        stepPanels[key].classList.toggle("active", Number(key) === currentStep);
+      });
+
+      prevStepBtn.disabled = currentStep === 1;
+      nextStepBtn.disabled = currentStep === totalSteps;
+      nextStepBtn.textContent = currentStep === totalSteps ? "已到最後一步" : "下一步 →";
+    }
+
+    function renderCompareChart() {
+      compareCountBadge.textContent = comparedCombos.length;
+
+      if (comparedCombos.length === 0) {
+        compareChartContainer.innerHTML = `
+          <div class="empty-state">
+            目前還沒有加入任何比較組合。<br />
+            請到<strong>第 2 步</strong>勾選鏡片功能後，點擊卡片底部的「＋ 加入比較組合」。
+          </div>
+        `;
+        return;
+      }
+
+      const cardsHtml = comparedCombos
+        .map((c, idx) => {
+          const listItemsHtml = (c.chosenItems || [])
+            .map((item) => `<li>${item.name}（+${item.price.toLocaleString("zh-Hant")} 元）</li>`)
+            .join("");
+
+          const pkgPart = c.packageDiscount > 0 ? `套餐折 ${formatMoney(c.packageDiscount)}` : `套餐折 0 元`;
+          const savedHtml = c.totalSaved > 0
+            ? `<div class="discount-pill">🏷️ ${pkgPart}｜${c.promoSummary}（<span class="saved-red">共省 ${formatMoney(c.totalSaved)}</span>）</div>`
+            : `<div class="no-discount-note">🏷️ 目前無折扣</div>`;
+
+          return `
+            <section class="compare-visual-card ${c.cardClass}">
+              <div class="visual-top">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="icon-badge">${c.brandIcon}</div>
+                  <div class="visual-title">
+                    <h3>組合 #${idx + 1}・${c.brandName}</h3>
+                    <span>👓 ${c.seriesLabel}</span>
+                  </div>
+                </div>
+                <button type="button" class="delete-item-btn" data-delete-idx="${idx}">刪除</button>
+              </div>
+
+              <div class="final-price-box">
+                <span class="final-price-label">💰 含折扣最終總價</span>
+                <div class="final-price-num">${formatMoney(c.finalTotal)}</div>
+              </div>
+
+              <div class="lens-combo-section">
+                <div class="lens-combo-title">🔬 鏡片組合</div>
+                <ul class="lens-combo-list">${listItemsHtml}</ul>
+              </div>
+
+              ${savedHtml}
+            </section>
+          `;
+        })
+        .join("");
+
+      compareChartContainer.innerHTML = `<div class="compare-cards-grid">${cardsHtml}</div>`;
+
+      document.querySelectorAll(".delete-item-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.deleteIdx);
+          if (Number.isInteger(idx) && idx >= 0 && idx < comparedCombos.length) {
+            comparedCombos.splice(idx, 1);
+            renderCompareChart();
+          }
+        });
+      });
+    }
+
+    function syncPackageDiscountLive(brandId) {
+      const brand = brandsData.find((b) => b.id === brandId);
+      if (!brand) return;
+      const info = getBrandCalculation(brand);
+      const { hasAnySelection, calc, packageDiscount, noDiscountTotal } = info;
+
+      const alertText = "⚠️ 活動錯誤警示：已設定「套餐價（公司折扣）」，套餐價無法整筆打折數（已略過打折數計算）。";
+
+      const cardEl = cardsGrid.querySelector(`.brand-card[data-brand-card="${brandId}"]`);
+      if (cardEl) {
+        const pkgBox = cardEl.querySelector(".package-price-box");
+        if (pkgBox) {
+          const existingAlert = pkgBox.querySelector(".promo-error-alert");
+          if (calc.rateConflictError) {
+            if (!existingAlert) {
+              const alertDiv = document.createElement("div");
+              alertDiv.className = "promo-error-alert";
+              alertDiv.textContent = alertText;
+              pkgBox.appendChild(alertDiv);
+            }
+          } else if (existingAlert) {
+            existingAlert.remove();
+          }
+        }
+      }
+
+      const finalCardEl = finalCardsGrid.querySelector(`.visual-final-card[data-final-card="${brandId}"]`);
+      if (finalCardEl) {
+        const priceBox = finalCardEl.querySelector(".final-price-box");
+        if (priceBox) {
+          const finalPriceDisplay = hasAnySelection ? formatMoney(calc.finalTotal) : "請先勾選功能";
+          const strikeHtml = hasAnySelection && calc.totalSaved > 0
+            ? `<span class="strike-sub">${formatMoney(noDiscountTotal)}</span>`
+            : "";
+          priceBox.innerHTML = `
+            <span class="final-price-label">💰 含折扣最終總價 ${strikeHtml}</span>
+            <div class="final-price-num">${finalPriceDisplay}</div>
+          `;
+        }
+
+        const badgeAnchor = finalCardEl.querySelector(".discount-pill, .no-discount-note");
+        if (badgeAnchor) {
+          const temp = document.createElement("div");
+          temp.innerHTML = buildDiscountBadgeHtml(hasAnySelection, packageDiscount, calc, noDiscountTotal);
+          badgeAnchor.replaceWith(temp.firstElementChild);
+        }
+
+        const finalAlert = finalCardEl.querySelector(".promo-error-alert");
+        if (calc.rateConflictError) {
+          if (!finalAlert && priceBox) {
+            const alertDiv = document.createElement("div");
+            alertDiv.className = "promo-error-alert";
+            alertDiv.textContent = alertText;
+            priceBox.insertAdjacentElement("afterend", alertDiv);
+          }
+        } else if (finalAlert) {
+          finalAlert.remove();
+        }
+      }
+    }
+
+    function renderAll() {
+      const framePrice = getFramePrice();
+      const visibleBrands = getVisibleBrands();
+
+      syncRestoreDeletedBtn();
+      step2LensTypeLabel.textContent = lensType === "progressive" ? "多焦系列" : "單焦系列";
+      step2OriginLabel.textContent = getOriginLabel();
+      step2FrameDisplay.textContent = formatMoney(framePrice);
+
+      cardsGrid.classList.remove("two-cols", "single-focus");
+      finalCardsGrid.classList.remove("two-cols", "single-focus");
+
+      if (visibleBrands.length === 2) {
+        cardsGrid.classList.add("two-cols");
+        finalCardsGrid.classList.add("two-cols");
+      } else if (visibleBrands.length === 1) {
+        cardsGrid.classList.add("single-focus");
+        finalCardsGrid.classList.add("single-focus");
+      }
+
+      cardsGrid.innerHTML = "";
+      finalCardsGrid.innerHTML = "";
+
+      visibleBrands.forEach((brand) => {
+        const info = getBrandCalculation(brand);
+        const {
+          hasAnySelection,
+          calc,
+          itemsText,
+          lensTotal,
+          packageDiscount,
+          effectiveSeriesLabel,
+          chosenItems,
+          noDiscountTotal
+        } = info;
+        const selectedSet = selectedNamesMap[brand.id];
+        const isPriceHidden = hiddenPriceMap[brand.id];
+
+        const card = document.createElement("section");
+        card.className = `brand-card ${brand.cardClass} ${isPriceHidden ? "price-hidden" : ""}`;
+        card.dataset.brandCard = brand.id;
+
+        const renderOptionRow = (item, isProgressiveItem) => {
+          const isActive = selectedSet.has(item.name);
+          return `
+            <div class="option-row">
+              <button
+                type="button"
+                class="option-btn ${isActive ? "active" : ""}"
+                data-brand="${brand.id}"
+                data-name="${item.name}"
+                data-progressive="${isProgressiveItem ? "1" : "0"}"
+                aria-pressed="${isActive}"
+              >
+                <span class="option-left">
+                  <span class="check-indicator">${isActive ? "✓" : ""}</span>
+                  <span>${item.name}</span>
+                </span>
+                <span class="option-price">+${item.price.toLocaleString("zh-Hant")} 元</span>
+              </button>
+              <button
+                type="button"
+                class="remove-item-btn"
+                title="刪除此品項"
+                data-remove-brand="${brand.id}"
+                data-remove-name="${item.name}"
+              >✕</button>
+            </div>
+          `;
+        };
+
+        const baseVisible = getBrandBaseList(brand);
+        const progVisible = getBrandProgressiveList(brand);
+
+        let optionsHtml =
+          `<div class="group-label">一般／單焦功能</div>` +
+          baseVisible.map((i) => renderOptionRow(i, false)).join("");
+
+        if (lensType === "progressive" && progVisible.length > 0) {
+          optionsHtml +=
+            `<div class="group-label">多焦專屬品項（最多選 1 項；未選算單焦）</div>` +
+            progVisible.map((i) => renderOptionRow(i, true)).join("");
+        }
+
+        const progCheckboxHtml =
+          lensType === "progressive"
+            ? `<label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
+                 <input type="checkbox" class="custom-prog-check" data-brand="${brand.id}" /> 多焦品項
+               </label>`
+            : "";
+
+        optionsHtml += `
+          <div class="custom-item-adder">
+            <div class="custom-item-inputs">
+              <input type="text" class="custom-item-name" data-custom-name="${brand.id}" placeholder="自訂品項名稱" />
+              <input type="number" class="no-spinner custom-item-price" inputmode="numeric" data-custom-price="${brand.id}" min="0" placeholder="金額" />
+              <button type="button" class="small-btn add-custom-item-btn" data-add-item="${brand.id}">＋ 新增</button>
+            </div>
+            <div class="custom-item-meta">
+              <span>可自行新增品項並勾選</span>
+              ${progCheckboxHtml}
+            </div>
+          </div>
+        `;
+
+        const currentTotalDisplay = hasAnySelection ? formatMoney(noDiscountTotal) : "未勾選";
+        const alertHtml = calc.rateConflictError
+          ? `<div class="promo-error-alert">⚠️ 活動錯誤警示：已設定「套餐價（公司折扣）」，套餐價無法整筆打折數（已略過打折數計算）。</div>`
+          : "";
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="brand-title">
+              <h2>${brand.name}</h2>
+              <span>判定為：${effectiveSeriesLabel}</span>
+            </div>
+            <div class="header-right-group">
+              <button type="button" class="hide-price-btn" data-toggle-price="${brand.id}">
+                ${isPriceHidden ? "顯示價格" : "隱藏價格"}
+              </button>
+              <div class="total-box">
+                <span class="total-label">${hasAnySelection ? "目前總價（無折扣）" : "請先勾選功能"}</span>
+                <span class="total-amount">${currentTotalDisplay}</span>
+              </div>
+            </div>
+          </div>
+          <div class="options-list">${optionsHtml}</div>
+          <div class="package-price-box">
+            <div class="package-price-row">
+              <span><strong>套餐價</strong>（公司折扣・扣掉金額）</span>
+              <div class="package-inputs">
+                <span>－</span>
+                <input
+                  type="number"
+                  class="no-spinner package-discount-input"
+                  inputmode="numeric"
+                  data-brand="${brand.id}"
+                  min="0"
+                  value="${packageDiscount === 0 ? "" : packageDiscount}"
+                  placeholder="0"
+                />
+                <span>元</span>
+              </div>
+            </div>
+            ${alertHtml}
+          </div>
+          <div class="selected-summary">
+            <div><strong>已選功能：</strong>${itemsText}</div>
+            <div class="price-detail-text"><strong>鏡片小計：</strong>${hasAnySelection ? formatMoney(lensTotal) : "0 元"}｜<strong>鏡框：</strong>${formatMoney(framePrice)}</div>
+          </div>
+          <div class="card-actions">
+            <button type="button" class="add-compare-btn" data-add-compare="${brand.id}">
+              ＋ 加入「${brand.name}」到比較組合
+            </button>
+          </div>
+        `;
+        cardsGrid.appendChild(card);
+
+        const finalCard = document.createElement("section");
+        finalCard.className = `visual-final-card ${brand.cardClass}`;
+        finalCard.dataset.finalCard = brand.id;
+
+        const finalPriceDisplay = hasAnySelection
+          ? formatMoney(calc.finalTotal)
+          : "請先勾選功能";
+
+        const strikeHtml =
+          hasAnySelection && calc.totalSaved > 0
+            ? `<span class="strike-sub">${formatMoney(noDiscountTotal)}</span>`
+            : "";
+
+        const discountBadgeHtml = buildDiscountBadgeHtml(hasAnySelection, packageDiscount, calc, noDiscountTotal);
+
+        finalCard.innerHTML = `
+          <div class="visual-top">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="icon-badge">${brand.icon}</div>
+              <div class="visual-title">
+                <h3>${brand.name}</h3>
+                <span>👓 ${effectiveSeriesLabel}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="final-price-box">
+            <span class="final-price-label">💰 含折扣最終總價 ${strikeHtml}</span>
+            <div class="final-price-num">${finalPriceDisplay}</div>
+          </div>
+
+          <div class="lens-combo-section">
+            <div class="lens-combo-title">🔬 鏡片組合</div>
+            ${buildLensComboListHtml(chosenItems)}
+          </div>
+
+          ${alertHtml}
+          ${discountBadgeHtml}
+        `;
+        finalCardsGrid.appendChild(finalCard);
+      });
+
+      document.querySelectorAll(".add-custom-item-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const brandId = btn.dataset.addItem;
+          const nameInput = cardsGrid.querySelector(`[data-custom-name="${brandId}"]`);
+          const priceInput = cardsGrid.querySelector(`[data-custom-price="${brandId}"]`);
+          const progCheck = cardsGrid.querySelector(`.custom-prog-check[data-brand="${brandId}"]`);
+
+          const name = (nameInput?.value || "").trim();
+          const price = Number(priceInput?.value);
+
+          if (!name) {
+            alert("請先輸入自訂品項名稱");
+            return;
+          }
+          if (!Number.isFinite(price) || price < 0) {
+            alert("請輸入有效的金額");
+            return;
+          }
+
+          deletedItemsMap[brandId].delete(name);
+          const isProg = Boolean(progCheck && progCheck.checked);
+          const targetArr = isProg ? customItemsMap[brandId].progressive : customItemsMap[brandId].base;
+
+          const existingIdx = targetArr.findIndex((item) => item.name === name);
+          if (existingIdx >= 0) {
+            targetArr[existingIdx].price = price;
+          } else {
+            targetArr.push({ name, price });
+          }
+
+          selectedNamesMap[brandId].add(name);
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".hide-price-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const brandId = btn.dataset.togglePrice;
+          hiddenPriceMap[brandId] = !hiddenPriceMap[brandId];
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".option-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const brandId = btn.dataset.brand;
+          const itemName = btn.dataset.name;
+          const isProgressive = btn.dataset.progressive === "1";
+          const brand = brandsData.find((b) => b.id === brandId);
+          const progAll = [...(brand?.progressiveItems || []), ...(customItemsMap[brandId]?.progressive || [])];
+          const progressiveNames = new Set(progAll.map((p) => p.name));
+          const set = selectedNamesMap[brandId];
+
+          if (set.has(itemName)) {
+            set.delete(itemName);
+          } else {
+            if (isProgressive) {
+              progressiveNames.forEach((pName) => set.delete(pName));
+            }
+            if (itemName === "高清") {
+              set.delete("蜂巢");
+            } else if (itemName === "蜂巢") {
+              set.delete("高清");
+            }
+            set.add(itemName);
+          }
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".remove-item-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const brandId = btn.dataset.removeBrand;
+          const itemName = btn.dataset.removeName;
+          deletedItemsMap[brandId].add(itemName);
+          selectedNamesMap[brandId].delete(itemName);
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll(".package-discount-input").forEach((input) => {
+        input.addEventListener("input", () => {
+          const brandId = input.dataset.brand;
+          const num = Number(input.value);
+          packageDiscountMap[brandId] = Number.isFinite(num) && num > 0 ? num : 0;
+          syncPackageDiscountLive(brandId);
+        });
+      });
+
+      document.querySelectorAll(".add-compare-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const brandId = btn.dataset.addCompare;
+          const brand = brandsData.find((b) => b.id === brandId);
+          if (!brand) return;
+          const info = getBrandCalculation(brand);
+
+          if (!info.hasAnySelection) {
+            alert("請先勾選至少一項鏡片功能，再加入比較組合！");
+            return;
+          }
+
+          comparedCombos.push({
+            brandId: brand.id,
+            brandName: brand.name,
+            brandIcon: brand.icon,
+            cardClass: brand.cardClass,
+            seriesLabel: info.effectiveSeriesLabel,
+            chosenItems: info.chosenItems.map((i) => ({ ...i })),
+            packageDiscount: info.packageDiscount,
+            promoSummary: info.calc.promoSummaryLabel,
+            totalSaved: info.calc.totalSaved,
+            finalTotal: info.calc.finalTotal
+          });
+
+          renderCompareChart();
+          btn.textContent = "✓ 已加入比較組合！再按一次可新增";
+          setTimeout(() => {
+            btn.textContent = `＋ 加入「${brand.name}」到比較組合`;
+          }, 1200);
+        });
+      });
+
+      renderCompareChart();
+    }
+
+    restoreDeletedBtn.addEventListener("click", () => {
+      Object.keys(deletedItemsMap).forEach((key) => deletedItemsMap[key].clear());
+      renderAll();
+    });
+
+    hideAllPricesBtn.addEventListener("click", () => {
+      Object.keys(hiddenPriceMap).forEach((k) => {
+        hiddenPriceMap[k] = true;
+      });
+      renderAll();
+    });
+
+    showAllPricesBtn.addEventListener("click", () => {
+      Object.keys(hiddenPriceMap).forEach((k) => {
+        hiddenPriceMap[k] = false;
+      });
+      renderAll();
+    });
+
+    document.querySelectorAll(".rec-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.rec;
+        if (activeRecSet.has(key)) {
+          activeRecSet.delete(key);
+        } else {
+          activeRecSet.add(key);
+        }
+        applyActiveRecommendations();
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll("#lensTypeGroup .choice-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        lensType = btn.dataset.lensType;
+        if (lensType === "single") {
+          brandsData.forEach((b) => {
+            const progAll = [...b.progressiveItems, ...(customItemsMap[b.id]?.progressive || [])];
+            progAll.forEach((p) => selectedNamesMap[b.id].delete(p.name));
+          });
+        }
+        document.querySelectorAll("#lensTypeGroup .choice-btn").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        renderAll();
+      });
+    });
+
+    originAllBtn.addEventListener("click", () => {
+      selectedOrigins = [];
+      syncOriginButtonsUI();
+      renderAll();
+    });
+
+    originSingleBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const origin = btn.dataset.origin;
+        const idx = selectedOrigins.indexOf(origin);
+
+        if (idx >= 0) {
+          selectedOrigins.splice(idx, 1);
+        } else {
+          if (selectedOrigins.length >= 2) {
+            selectedOrigins.shift();
+          }
+          selectedOrigins.push(origin);
+        }
+
+        syncOriginButtonsUI();
+        renderAll();
+      });
+    });
+
+    promoPresetSelect.addEventListener("change", () => {
+      const key = promoPresetSelect.value;
+      syncDeletePromoBtn();
+      const found = promosList.find((p) => p.id === key);
+      if (found) {
+        promoNameInput.value = found.name;
+        threshold1Input.value = found.threshold1;
+        off1Input.value = found.off1;
+        threshold2Input.value = found.threshold2;
+        off2Input.value = found.off2;
+        rateInput.value = found.rate;
+        renderAll();
+      }
+    });
+
+    deletePromoBtn.addEventListener("click", () => {
+      const targetId = promoPresetSelect.value;
+      if (!isCustomPromoId(targetId)) return;
+
+      const targetPromo = promosList.find((p) => p.id === targetId);
+      const labelName = targetPromo ? targetPromo.label : "此自訂檔期";
+      if (!confirm(`確定要刪除「${labelName}」嗎？`)) return;
+
+      promosList = promosList.filter((p) => p.id !== targetId);
+      saveCustomPromos(promosList);
+      renderPromoOptions("none");
+
+      promoNameInput.value = "";
+      threshold1Input.value = "";
+      off1Input.value = "";
+      threshold2Input.value = "";
+      off2Input.value = "";
+      rateInput.value = "";
+
+      renderAll();
+    });
+
+    addPromoBtn.addEventListener("click", () => {
+      const name = newPromoName.value.trim();
+      const t1 = newThreshold1.value;
+      const o1 = newOff1.value;
+      const t2 = newThreshold2.value;
+      const o2 = newOff2.value;
+      const rate = newRate.value;
+
+      if (!name) {
+        alert("請先輸入檔期名稱");
+        return;
+      }
+
+      const parts = [];
+      if (t1 && o1) parts.push(`滿${Number(t1).toLocaleString("zh-Hant")}折${Number(o1).toLocaleString("zh-Hant")}`);
+      if (t2 && o2) parts.push(`滿${Number(t2).toLocaleString("zh-Hant")}折${Number(o2).toLocaleString("zh-Hant")}`);
+      if (rate) parts.push(`打${rate}折`);
+      const desc = parts.length > 0 ? `（${parts.join(" / ")}）` : "（自訂）";
+
+      const newPromo = {
+        id: "custom_" + Date.now(),
+        label: `${name}${desc}`,
+        name,
+        threshold1: t1,
+        off1: o1,
+        threshold2: t2,
+        off2: o2,
+        rate
+      };
+
+      promosList.push(newPromo);
+      saveCustomPromos(promosList);
+      renderPromoOptions(newPromo.id);
+
+      promoNameInput.value = name;
+      threshold1Input.value = t1;
+      off1Input.value = o1;
+      threshold2Input.value = t2;
+      off2Input.value = o2;
+      rateInput.value = rate;
+
+      newPromoName.value = "";
+      newThreshold1.value = "";
+      newOff1.value = "";
+      newThreshold2.value = "";
+      newOff2.value = "";
+      newRate.value = "";
+
+      renderAll();
+    });
+
+    [threshold1Input, off1Input, threshold2Input, off2Input, promoNameInput, rateInput].forEach((el) => {
+      el.addEventListener("input", () => {
+        promoPresetSelect.value = "custom";
+        syncDeletePromoBtn();
+        renderAll();
+      });
+    });
+
+    framePriceInput.addEventListener("input", renderAll);
+
+    stepTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        goToStep(Number(tab.dataset.step));
+      });
+    });
+
+    prevStepBtn.addEventListener("click", () => {
+      goToStep(currentStep - 1);
+    });
+
+    nextStepBtn.addEventListener("click", () => {
+      goToStep(currentStep + 1);
+    });
+
+    goCompareStepBtn.addEventListener("click", () => {
+      goToStep(4);
+    });
+
+    clearCompareBtn.addEventListener("click", () => {
+      comparedCombos.length = 0;
+      renderCompareChart();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      activeRecSet.clear();
+      document.querySelectorAll(".rec-btn").forEach((b) => b.classList.remove("active"));
+      Object.keys(customItemsMap).forEach((key) => {
+        customItemsMap[key].base = [];
+        customItemsMap[key].progressive = [];
+      });
+      Object.keys(deletedItemsMap).forEach((key) => deletedItemsMap[key].clear());
+      Object.keys(selectedNamesMap).forEach((key) => selectedNamesMap[key].clear());
+      Object.keys(packageDiscountMap).forEach((key) => {
+        packageDiscountMap[key] = 0;
+      });
+      framePriceInput.value = "";
+      promoPresetSelect.value = "none";
+      syncDeletePromoBtn();
+      threshold1Input.value = "";
+      off1Input.value = "";
+      threshold2Input.value = "";
+      off2Input.value = "";
+      promoNameInput.value = "";
+      rateInput.value = "";
+      renderAll();
+    });
+
+    renderPromoOptions("none");
+    syncOriginButtonsUI();
+    renderAll();
+  </script>
+</body>
+</html>
